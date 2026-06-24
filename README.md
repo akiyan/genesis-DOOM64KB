@@ -28,9 +28,6 @@ https://www.youtube.com/watch?v=op3LCBNLuqo
 
 DOOM running on the Sega Mega Drive / Genesis, ported from Doom64KB.
 
-Fork of FrenkelS/Doom64KB:
-https://github.com/FrenkelS/Doom64KB
-
 Music: the in-game MIDI is from
 https://www.vgmusic.com/file/f4135d253bec49497cb3323be35a0cce.html
 converted to VGM (Mega Drive YM2612 FM) with akiyan/midi2vgm:
