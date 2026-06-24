@@ -66,6 +66,8 @@ VGM ファイルはリポジトリには含めない。各自で上記パスへ�
 ```sh
 ./build.sh                 # out/rom.bin を生成
 BGM_VGM=~/music/e1m1.vgm SILENT_VGM=~/music/silent.vgm DOOM1_WAD=~/wads/doom1.wad ./build.sh
+BGM_VGM=res/silent.vgm ./build.sh   # BGM 無音版
+SFX_SILENT=1 ./build.sh             # SFX 無音版
 TITLE_DEMO_SECONDS=10 ./build.sh
 TIMEDEMO=1 ./build.sh      # 起動直後に DEMO3 を再生するベンチ版（3D描画確認用）
 ```
@@ -76,6 +78,7 @@ TIMEDEMO=1 ./build.sh      # 起動直後に DEMO3 を再生するベンチ版�
    （非整列 lump を WAD へ直接 far 参照すると 68000 で address error になるため）
 2. `scripts/genpal.py` で PLAYPAL → Genesis 64 色パレット/LUT(`src/gen_pal.h`)を生成
 3. `scripts/gen_sfx.py` で `doom1.wad` の DS* lump → XGM PCM 用 SFX データ(`src/gen_sfx.h`)を生成
+   （`SFX_SILENT=1` の場合は無音 SFX データを生成）
 4. SGDK rescomp で `res/music.res` の VGM → XGM データを生成
 
 ## 動作確認（ヘッドレス）

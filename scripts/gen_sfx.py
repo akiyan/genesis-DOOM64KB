@@ -87,7 +87,19 @@ def fresh():
             return False
     return True
 
+def write_silent():
+    with open(OUT, "w") as f:
+        f.write("// 自動生成 (scripts/gen_sfx.py --silent) — SFX 無音ビルド\n")
+        f.write("#ifndef __GEN_SFX_H__\n#define __GEN_SFX_H__\n#include <stdint.h>\n\n")
+        f.write("#define GENSFX_PCM_ID_BASE %d\n#define GENSFX_COUNT 0\n\n" % PCM_ID_BASE)
+        f.write("typedef struct { const uint8_t *data; uint32_t len; uint8_t prio; } gensfx_t;\n")
+        f.write("static const gensfx_t gensfx[1] = { { 0, 0, 0 } };\n\n#endif\n")
+    print("wrote %s  SFX=0 (silent)" % OUT)
+
 def main():
+    if "--silent" in sys.argv:
+        write_silent()
+        return
     if "--force" not in sys.argv and fresh():
         print("gen_sfx.h は最新。スキップ")
         return

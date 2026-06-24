@@ -69,8 +69,12 @@ fi
 python3 scripts/repack_wad.py
 # PLAYPAL -> Genesis 64色パレット/LUT を生成
 python3 scripts/genpal.py
-# doom1.wad の DS* -> XGM PCM 用 SFX データ(src/gen_sfx.h)を生成（変更時のみ）
-python3 scripts/gen_sfx.py
+# doom1.wad の DS* -> XGM PCM 用 SFX データ(src/gen_sfx.h)を生成。
+if [ "${SFX_SILENT:-0}" = "1" ]; then
+  python3 scripts/gen_sfx.py --silent
+else
+  python3 scripts/gen_sfx.py --force
+fi
 
 # LTO 無効化（冪等パッチ）: marsdev(13.1.0) の LTO バイトコードと SGDK libmd の版差を回避。
 MK="${GDK}/makefile.gen"
@@ -90,6 +94,9 @@ RENDER_OPTIONS="-DFLAT_SPAN -DFLAT_NUKAGE1_COLOR=118 -DVIEWWINDOWWIDTH=38 -DVIEW
 
 if [ -n "${TITLE_DEMO_SECONDS:-}" ]; then
   RENDER_OPTIONS="${RENDER_OPTIONS} -DTITLE_DEMO_SECONDS=${TITLE_DEMO_SECONDS}"
+fi
+if [ "${SFX_SILENT:-0}" = "1" ]; then
+  RENDER_OPTIONS="${RENDER_OPTIONS} -DSFX_SILENT"
 fi
 
 # TIMEDEMO=1 で起動直後に DEMO3(E1M1) を再生するベンチ版（3Dレンダラ動作確認用）。
