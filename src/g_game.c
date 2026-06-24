@@ -235,21 +235,29 @@ void G_BuildTiccmd(void)
 
     // let movement keys cancel each other out
 
+    // Genesis(Doom 32X 方式): C(KEYD_R) / 6ボタンX,Z(KEYD_L) を押している間は
+    // 左右ボタンが「旋回」ではなく「横歩き(strafe)」になる。修飾キー単押しでは移動しない。
+    boolean strafe = gamekeydown[key_straferight] || gamekeydown[key_strafeleft];
+
     if (gamekeydown[key_right])
-        netcmd.angleturn -= angleturn[tspeed];
+    {
+        if (strafe)
+            side += sidemove[speed];
+        else
+            netcmd.angleturn -= angleturn[tspeed];
+    }
     if (gamekeydown[key_left])
-        netcmd.angleturn += angleturn[tspeed];
+    {
+        if (strafe)
+            side -= sidemove[speed];
+        else
+            netcmd.angleturn += angleturn[tspeed];
+    }
 
     if (gamekeydown[key_up])
         forward += forwardmove[speed];
     if (gamekeydown[key_down])
         forward -= forwardmove[speed];
-
-    if (gamekeydown[key_straferight])
-        side += sidemove[speed];
-
-    if (gamekeydown[key_strafeleft])
-        side -= sidemove[speed];
 
     if (gamekeydown[key_fire])
         netcmd.buttons |= BT_ATTACK;
@@ -260,11 +268,9 @@ void G_BuildTiccmd(void)
     }
 
     if (gamekeydown[key_use] && gamekeydown[key_straferight]) {
-        newweapon = P_WeaponCycleUp(&_g_player);
-        side -= sidemove[speed]; //Hack cancel strafe.
+        newweapon = P_WeaponCycleUp(&_g_player);   // A+C で武器送り(上)
     } else if (gamekeydown[key_use] && gamekeydown[key_strafeleft]) {
-        newweapon = P_WeaponCycleDown(&_g_player);
-        side += sidemove[speed]; //Hack cancel strafe.
+        newweapon = P_WeaponCycleDown(&_g_player); // A+X で武器送り(下)
     } else if ((_g_player.attackdown && !P_CheckAmmo(&_g_player)))
         newweapon = P_SwitchWeapon(&_g_player);
     else

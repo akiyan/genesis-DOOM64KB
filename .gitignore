@@ -7,8 +7,15 @@
 
 # 自動生成物（build.sh が scripts/doom64.wad から再生成）
 /scripts/doom64_aligned.wad
+/scripts/__pycache__/
 /src/doom64ng.h
 /src/gen_pal.h
+
+# rescomp 生成物（res/*.res から再生成。ソースは *.res と *.vgm のみ追跡）
+/res/*.h
+/res/*.rs
+/res/*.d
+._*
 
 # エディタ等
 *.o

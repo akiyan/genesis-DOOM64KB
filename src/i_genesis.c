@@ -21,10 +21,15 @@
 #endif
 
 #include "globdata.h"
+#include "music.h"        // rescomp 生成: const u8 bgm_e1m1[]（res/music.res）
 
 
 void I_InitGraphicsHardwareSpecificCode(void);
 void I_ShutdownGraphics(void);
+
+// XGM の毎フレーム同期は SGDK の VInt ISR(boot/sega.s)が PROCESS_XGM_TASK フラグを見て
+// 自動で行う（XGM_startPlay がフラグを立てる）。ここで手動に XGM_doVBlankProcess を呼ぶと
+// 二重駆動になり曲が倍速になるため呼ばない。
 
 
 static boolean isGraphicsModeSet = false;
@@ -66,12 +71,12 @@ static void I_PostEvent(boolean keyup, int16_t data1)
 }
 
 
-// Genesis ボタン -> Doom KEYD_* の対応表（上流 Neo Geo 版に合わせる）。
-//   方向キー : 移動 / メニュー上下左右
-//   A        : KEYD_A  (Use / Sprint / メニュー決定)
+// Genesis ボタン -> Doom KEYD_* の対応表（Doom 32X 風）。
+//   方向キー : 前後移動 / 旋回（C 押下中は左右が横歩き=strafe になる）
+//   A        : KEYD_A  (Use/ドア開閉 / ダッシュ / メニュー決定。A+C=武器送り上, A+X=下)
 //   B        : KEYD_B  (Fire)
-//   C        : KEYD_R  (Strafe 右)
-//   X / Z    : KEYD_L  (Strafe 左 / 6ボタン時)
+//   C        : KEYD_R  (Strafe 修飾キー。単押しでは動かない。C+左右で横歩き)
+//   X / Z    : KEYD_L  (Strafe 修飾キー / 6ボタン時。X/Z+左右で横歩き)
 //   Start    : KEYD_START (Menu 開閉 / 戻る)
 typedef struct { uint16_t mask; int16_t key; } joymap_t;
 
@@ -140,6 +145,32 @@ void DMX_Init(void)          { }
 void DMX_Init2(void)         { }
 void DMX_Shutdown(void)      { }
 // I_ShutdownSound は i_audio.c が定義する
+
+
+//**************************************************************************************
+//
+// Music : SGDK XGM ドライバで BGM(E1M1) を再生する。
+// 対応マップは E1M1/E1M8 のみで、用意した曲は E1M1(at doom's gate)。どのレベルでも同曲を流す。
+//
+
+void I_PlaySong(musicenum_t handle, boolean looping)
+{
+	(void)handle;
+	XGM_setLoopNumber(looping ? -1 : 0);   // -1 = 無限ループ
+	XGM_startPlay(bgm_e1m1);               // VInt ISR が以降自動で XGM を 60Hz 前進させる
+}
+
+void I_StopSong(musicenum_t handle)
+{
+	(void)handle;
+	// XGM(クラシック)に安全な明示停止が無いため no-op。レベル開始時の I_PlaySong で
+	// 同曲が再スタートされる（このゲームの BGM は E1M1 の1曲のみ）。
+}
+
+void I_SetMusicVolume(int16_t volume)
+{
+	(void)volume;   // XGM クラシックは全体音量制御を持たない
+}
 
 
 //**************************************************************************************

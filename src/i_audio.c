@@ -118,20 +118,5 @@ void I_ShutdownSound(void)
 }
 
 
-void I_PlaySong(musicenum_t handle, boolean looping)
-{
-	UNUSED(handle);
-	UNUSED(looping);
-}
-
-
-void I_StopSong(musicenum_t handle)
-{
-	UNUSED(handle);
-}
-
-
-void I_SetMusicVolume(int16_t volume)
-{
-	UNUSED(volume);
-}
+// I_PlaySong / I_StopSong / I_SetMusicVolume は Genesis 版(i_genesis.c)が
+// SGDK の XGM ドライバを使って実装する。

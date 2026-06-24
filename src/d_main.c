@@ -76,7 +76,7 @@ static void D_UpdateFPS(void);
 
 //jff 1/22/98 parms for disabling music and sound
       boolean nosfxparm   = false;
-const boolean nomusicparm = true;
+const boolean nomusicparm = false;   // Genesis: XGM で BGM を鳴らすため有効化（元は true=無音）
 
 const boolean nodrawers = false;
 
