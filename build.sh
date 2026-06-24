@@ -57,26 +57,33 @@ fi
 RENDER_OPTIONS="-DFLAT_SPAN -DFLAT_NUKAGE1_COLOR=118 -DVIEWWINDOWWIDTH=38 -DVIEWWINDOWHEIGHT=28 -DMAPWIDTH=38 -DLOW_MEMORY"
 
 # TIMEDEMO=1 で起動直後に DEMO3(E1M1) を再生するベンチ版（3Dレンダラ動作確認用）。
-# make はフラグ変更を検知しないため i_genesis.c を touch して再コンパイルさせる。
 if [ "${TIMEDEMO:-0}" = "1" ]; then
   RENDER_OPTIONS="${RENDER_OPTIONS} -DTIMEDEMO"
-  touch src/i_genesis.c
 fi
 if [ "${PLAYTEST:-0}" = "1" ]; then
   RENDER_OPTIONS="${RENDER_OPTIONS} -DPLAYTEST"
-  touch src/i_genesis.c
 fi
 # MENU_TEST=1 で起動後に自動でメニューを開く（テキスト描画の検証用）。
 if [ "${MENU_TEST:-0}" = "1" ]; then
   RENDER_OPTIONS="${RENDER_OPTIONS} -DMENU_TEST"
-  touch src/i_genesis.c
 fi
-# SFXDEBUG=1 で SFX 検証ビルド: デモ即開始＋BGM無音＋毎秒 発砲音を強制発火。
+# SFXDEBUG=1 で SFX 検証ビルド: デモ即開始＋無音BGM＋発砲音を強制発火。
 # 録音すると BGM に邪魔されず SFX(PCM)が鳴っているかを分離判定できる。
 if [ "${SFXDEBUG:-0}" = "1" ]; then
   RENDER_OPTIONS="${RENDER_OPTIONS} -DSFXDEBUG"
-  touch src/i_genesis.c src/d_main.c
 fi
+
+# フラグ変更の検知: make は -D フラグの変更を検知できないため、TIMEDEMO/SFXDEBUG 等を
+# 付けたビルドと通常ビルドを切り替えると、デバッグ付きの .o が残って混入する
+# （例: 通常ビルドなのにタイトルで SFX が鳴り続ける）。前回ビルドと RENDER_OPTIONS が
+# 変わっていたら強制的にクリーンビルドして再発を防ぐ。
+STAMP="out/.render_options"
+if [ -f "$STAMP" ] && [ "$(cat "$STAMP" 2>/dev/null)" != "${RENDER_OPTIONS}" ]; then
+  echo "==> ビルドフラグ変更を検出 → クリーンビルド"
+  rm -rf out
+fi
+mkdir -p out
+printf '%s' "${RENDER_OPTIONS}" > "$STAMP"
 
 # ビルド失敗時に古い ROM が残らないよう、毎ビルド前に削除する。
 rm -f out/rom.bin
