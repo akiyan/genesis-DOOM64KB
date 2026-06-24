@@ -137,12 +137,42 @@ void I_StartTic(void)
 
 //**************************************************************************************
 //
-// Audio (no sound, like the Neo Geo edition)
+// Audio : SFX を XGM(classic) ドライバの PCM 機能で再生する。
+// データは gen_sfx.h（scripts/gen_sfx.py が doom1.wad から生成、8bit符号付き/14kHz/256整列）。
 //
 
-void DMX_Play(sfxenum_t id)  { (void)id; }
-void DMX_Init(void)          { }
+#include "gen_sfx.h"
+
+// 各 SFX を XGM ドライバの PCM サンプル表へ登録（PCM id = 基点 + sfxenum）。
+// XGM ドライバのロード(= Z80 RAM リセット)後でないと表が消えるため、
+// DMX_Init と各 XGM_startPlay 直後の両方から呼ぶ。
+static void DMX_RegisterPCM(void)
+{
+	for (uint16_t i = 1; i <= GENSFX_COUNT; i++)
+		XGM_setPCM(GENSFX_PCM_ID_BASE + i, gensfx[i].data, gensfx[i].len);
+}
+
+void DMX_Init(void)
+{
+	// XGM ドライバを明示ロードしてから PCM を登録する。
+	// 遅延ロード任せだと、後続の XGM_startPlay がドライバをロードする際に
+	// Z80 RAM ごとリセットされ、先に登録した PCM サンプル表が消えて SFX が無音になる。
+	Z80_loadDriver(Z80_DRIVER_XGM, TRUE);
+	DMX_RegisterPCM();
+}
+
 void DMX_Init2(void)         { }
+
+void DMX_Play(sfxenum_t id, int16_t channel)
+{
+	if (id <= sfx_None || id > GENSFX_COUNT)
+		return;
+	// classic XGM は ch を CH1..CH4 で明示指定する(CH_AUTO は XGM2 専用で無効)。
+	// doom 論理ch(0..2)を PCM ch2..ch4 に対応させ最大3音同時(ch1は音楽用に温存)。
+	SoundPCMChannel pcmch = (SoundPCMChannel)(SOUND_PCM_CH2 + channel);
+	XGM_startPlayPCM(GENSFX_PCM_ID_BASE + id, gensfx[id].prio, pcmch);
+}
+
 void DMX_Shutdown(void)      { }
 // I_ShutdownSound は i_audio.c が定義する
 
@@ -157,7 +187,17 @@ void I_PlaySong(musicenum_t handle, boolean looping)
 {
 	(void)handle;
 	XGM_setLoopNumber(looping ? -1 : 0);   // -1 = 無限ループ
+#if defined SFXDEBUG
+	// SFXDEBUG: 無音VGM(bgm_silent)を XGM で再生する。FM/PSG は無音だが XGM ドライバは
+	// 正常に駆動される(PROCESS_XGM_TASK が立ち毎フレーム処理が回る)ので、PCM/SFX を
+	// 実条件のまま BGM 音から分離して検証できる。
+	XGM_startPlay(bgm_silent);
+	DMX_RegisterPCM();
+#else
 	XGM_startPlay(bgm_e1m1);               // VInt ISR が以降自動で XGM を 60Hz 前進させる
+	// XGM_startPlay がドライバを(再)ロードした場合に備え、PCM サンプル表を再登録する。
+	DMX_RegisterPCM();
+#endif
 }
 
 void I_StopSong(musicenum_t handle)
@@ -294,7 +334,7 @@ int main(bool hardReset)
 {
 	(void)hardReset;
 
-#if defined TIMEDEMO
+#if defined TIMEDEMO || defined SFXDEBUG
 	int argc = 3;
 	const char * const argv[] = {"Doom64KB", "-timedemo", "demo3"};
 #else

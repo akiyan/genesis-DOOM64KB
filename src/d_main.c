@@ -287,6 +287,22 @@ _Noreturn static void D_DoomLoop(void)
         if (_g_player.mo) // cph 2002/08/10
             S_UpdateSounds();// move positional sounds
 
+#if defined SFXDEBUG
+        // SFXDEBUG: BGM 無音の裏で約1秒ごとに発砲音を強制発火し、PCM 経路を分離検証する。
+        {
+            // 内部描画は ~5fps。数ループ毎に 3 つの異なる音を 3 つの doom 論理ch へ同時投入し、
+            // PCM ch2..ch4 の同時発音(ミキシング)を検証する。
+            static uint16_t sfxdbg_cnt = 0;
+            if (++sfxdbg_cnt >= 6)
+            {
+                sfxdbg_cnt = 0;
+                DMX_Play(sfx_pistol, 0);   // CH2
+                DMX_Play(sfx_shotgn, 1);   // CH3
+                DMX_Play(sfx_barexp, 2);   // CH4
+            }
+        }
+#endif
+
         // Update display, next frame, with current state.
         D_Display();
 

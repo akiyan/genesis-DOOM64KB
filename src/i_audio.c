@@ -59,7 +59,8 @@
 #include "globdata.h"
 
 
-#define MAX_CHANNELS    1
+// classic XGM の PCM ch2..ch4 を SFX に使う（ch1 は音楽用に温存）→ 同時3音。
+#define MAX_CHANNELS    3
 
 
 int16_t I_StartSound(sfxenum_t id, int16_t channel, int16_t vol, int16_t sep)
@@ -79,7 +80,7 @@ int16_t I_StartSound(sfxenum_t id, int16_t channel, int16_t vol, int16_t sep)
 //	 || id == sfx_sawidl)
 //		return -1;
 
-	DMX_Play(id);
+	DMX_Play(id, channel);
 
 	return channel;
 }

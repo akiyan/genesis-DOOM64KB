@@ -37,6 +37,8 @@ fi
 python3 scripts/repack_wad.py
 # PLAYPAL -> Genesis 64色パレット/LUT を生成
 python3 scripts/genpal.py
+# doom1.wad の DS* -> XGM PCM 用 SFX データ(src/gen_sfx.h)を生成（変更時のみ）
+python3 scripts/gen_sfx.py
 
 # LTO 無効化（冪等パッチ）: marsdev(13.1.0) の LTO バイトコードと SGDK libmd の版差を回避。
 MK="${GDK}/makefile.gen"
@@ -68,6 +70,12 @@ fi
 if [ "${MENU_TEST:-0}" = "1" ]; then
   RENDER_OPTIONS="${RENDER_OPTIONS} -DMENU_TEST"
   touch src/i_genesis.c
+fi
+# SFXDEBUG=1 で SFX 検証ビルド: デモ即開始＋BGM無音＋毎秒 発砲音を強制発火。
+# 録音すると BGM に邪魔されず SFX(PCM)が鳴っているかを分離判定できる。
+if [ "${SFXDEBUG:-0}" = "1" ]; then
+  RENDER_OPTIONS="${RENDER_OPTIONS} -DSFXDEBUG"
+  touch src/i_genesis.c src/d_main.c
 fi
 
 # ビルド失敗時に古い ROM が残らないよう、毎ビルド前に削除する。

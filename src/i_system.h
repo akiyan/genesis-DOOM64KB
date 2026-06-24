@@ -70,7 +70,7 @@ void I_SetPalette(int8_t pal);
  */
 void I_StartTic(void);
 
-void DMX_Play(sfxenum_t id);
+void DMX_Play(sfxenum_t id, int16_t channel);
 void DMX_Init(void);
 void DMX_Init2(void);
 void DMX_Shutdown(void);

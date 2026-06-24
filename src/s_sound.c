@@ -96,8 +96,8 @@ int16_t snd_SfxVolume = 15;
 int16_t snd_MusicVolume = 15;
 
 
-// number of channels available
-static const int16_t numChannels = 1;
+// number of channels available（classic XGM の PCM ch2..ch4 に対応＝同時3音）
+static const int16_t numChannels = 3;
 
 //
 // Internals.
