@@ -77,7 +77,7 @@ static inline uint16_t font_cell(uint8_t color, char c)
 
 //**************************************************************************************
 //
-// デバッグ表示（画面右上）: 実測 FPS "x.xx fps"
+// デバッグ表示（画面右上）: 実測 FPS "x.xfps"
 //
 
 extern volatile uint32_t _g_vblankCount;   // i_genesis.c（60Hz）
@@ -125,17 +125,25 @@ static void I_DrawDebugCounters(void)
 	if (_g_gamestate != GS_LEVEL)
 		return;
 
-	// 右上に "DD.DD fps" を右詰め(col 37 右端)で表示。cols 29..37 の 9 文字。
+	// 右上に "D.Dfps" / "DD.Dfps" を右詰め(col 37 右端)で表示。cols 31..37 を使用。
 	{
-		uint16_t ip = fps_x100 / 100; if (ip > 99) ip = 99;
-		uint16_t fp = fps_x100 % 100;
-		hud_num(29, 0, ip, 2);
-		hud_putc(31, 0, '.');
-		hud_num(32, 0, fp, 2);
-		hud_putc(34, 0, ' ');
-		hud_putc(35, 0, 'f');
-		hud_putc(36, 0, 'p');
-		hud_putc(37, 0, 's');
+		uint16_t fps_x10 = (fps_x100 + 5) / 10;
+		uint16_t ip = fps_x10 / 10; if (ip > 99) ip = 99;
+		uint16_t fp = fps_x10 % 10;
+		uint16_t x = (ip >= 10) ? 31 : 32;
+
+		for (uint16_t i = 31; i <= 37; i++)
+			hud_putc(i, 0, ' ');
+
+		if (ip >= 10)
+			hud_num(x, 0, ip, 2);
+		else
+			hud_num(x, 0, ip, 1);
+		hud_putc(x + ((ip >= 10) ? 2 : 1), 0, '.');
+		hud_putc(x + ((ip >= 10) ? 3 : 2), 0, (char)('0' + fp));
+		hud_putc(x + ((ip >= 10) ? 4 : 3), 0, 'f');
+		hud_putc(x + ((ip >= 10) ? 5 : 4), 0, 'p');
+		hud_putc(x + ((ip >= 10) ? 6 : 5), 0, 's');
 	}
 }
 
