@@ -13,6 +13,8 @@
   </tr>
 </table>
 
+デモ動画: https://www.youtube.com/watch?v=op3LCBNLuqo
+
 [FrenkelS/Doom64KB](https://github.com/FrenkelS/Doom64KB) を **Sega Genesis / Mega Drive** へ移植したもの。
 SGDK + marsdev(m68k-elf) で Linux ネイティブビルドする。
 
