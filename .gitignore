@@ -1,0 +1,17 @@
+# ビルド成果物
+/out/
+/tmp/
+
+# SGDK 本体（symlink / 各環境で用意。詳細は README）
+/vendor/sgdk
+
+# 自動生成物（build.sh が scripts/doom64.wad から再生成）
+/scripts/doom64_aligned.wad
+/src/doom64ng.h
+/src/gen_pal.h
+
+# エディタ等
+*.o
+*.lst
+*.bin
+.DS_Store
