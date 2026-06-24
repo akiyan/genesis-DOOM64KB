@@ -3,6 +3,8 @@
 [FrenkelS/Doom64KB](https://github.com/FrenkelS/Doom64KB) を **Sega Genesis / Mega Drive** へ移植したもの。
 SGDK + marsdev(m68k-elf) で Linux ネイティブビルドする。
 
+このリポジトリは [FrenkelS/Doom64KB](https://github.com/FrenkelS/Doom64KB) からの fork。
+
 Doom64KB は「RAM 64KB・ROM 大容量」向けの Doom 移植で、Genesis(68000, メイン RAM 64KB) は
 ターゲットとして好相性。Neo Geo 版(`i_neogeo.c` / `i_neogev.c`)も同じ 68000・big-endian の
 ため、プラットフォーム非依存の Doom コードは無修正で動作し、置き換えるのは I/O 層 2 ファイルだけ。
@@ -19,6 +21,12 @@ Doom64KB は「RAM 64KB・ROM 大容量」向けの Doom 移植で、Genesis(680
 - ❌ サウンド（Neo Geo 版同様に無し）
 
 対応マップは Doom 1 E1M1 と E1M8 のみ（Doom64KB の仕様）。
+
+## 音源
+
+`res/e1m1_hangar.vgm` の元になった MIDI ファイルは
+[E1M1.mid](https://bitmidi.com/e1m1-mid)。MIDI から VGM への変換には
+[akiyan/midi2vgm](https://github.com/akiyan/midi2vgm) を使用した。
 
 ## 描画方式
 
