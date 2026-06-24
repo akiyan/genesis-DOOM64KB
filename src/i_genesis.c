@@ -181,10 +181,14 @@ void I_SetMusicVolume(int16_t volume)
 static volatile int32_t ticcount;
 static boolean isTimerSet;
 
+// VBlank の総数（実時間の基準・60Hz）。デバッグ表示(i_genesisv.c)が参照する。
+volatile uint32_t _g_vblankCount;
+
 
 static void I_VBlankCallback(void)
 {
 	ticcount++;
+	_g_vblankCount++;
 }
 
 

@@ -77,6 +77,71 @@ static inline uint16_t font_cell(uint8_t color, char c)
 
 //**************************************************************************************
 //
+// デバッグ表示（画面右上）: 実測 FPS "x.xx fps"
+//
+
+extern volatile uint32_t _g_vblankCount;   // i_genesis.c（60Hz）
+
+#define HUD_COL 15   // 白(PAL0 index15)
+
+static void hud_putc(int16_t cx, int16_t cy, char c)
+{
+	if ((uint16_t)cx < VIEWWINDOWWIDTH && (uint16_t)cy < VIEWWINDOWHEIGHT)
+		_s_screen[cy * VIEWWINDOWWIDTH + cx] = font_cell(HUD_COL, c);
+}
+
+// v を cx から digits 桁、ゼロ埋め右詰めで描画
+static void hud_num(int16_t cx, int16_t cy, uint16_t v, int8_t digits)
+{
+	for (int8_t i = digits - 1; i >= 0; i--)
+	{
+		hud_putc(cx + i, cy, (char)('0' + (v % 10)));
+		v /= 10;
+	}
+}
+
+static void I_DrawDebugCounters(void)
+{
+	static uint16_t frameCount = 0;
+	static uint16_t fps_x100   = 0;
+	static uint32_t lastVb     = 0;
+	static uint16_t lastFrame  = 0;
+
+	uint32_t vb = _g_vblankCount;
+	frameCount++;
+
+	// FPS を約1秒(60 VBlank)ごとに更新。fps = 描画フレーム数 / (経過VBlank/60)。
+	// x100 表記: fps_x100 = frames * 6000 / 経過VBlank。経過が60ちょうどでないため小数も出る。
+	uint32_t dvb = vb - lastVb;
+	if (dvb >= 60)
+	{
+		uint16_t df = frameCount - lastFrame;
+		fps_x100  = (uint16_t)(((uint32_t)df * 6000u) / dvb);
+		lastVb    = vb;
+		lastFrame = frameCount;
+	}
+
+	// FPS はゲーム画面(GS_LEVEL)のときだけ表示する（タイトル/メニュー/集計画面では出さない）。
+	if (_g_gamestate != GS_LEVEL)
+		return;
+
+	// 右上に "DD.DD fps" を右詰め(col 37 右端)で表示。cols 29..37 の 9 文字。
+	{
+		uint16_t ip = fps_x100 / 100; if (ip > 99) ip = 99;
+		uint16_t fp = fps_x100 % 100;
+		hud_num(29, 0, ip, 2);
+		hud_putc(31, 0, '.');
+		hud_num(32, 0, fp, 2);
+		hud_putc(34, 0, ' ');
+		hud_putc(35, 0, 'f');
+		hud_putc(36, 0, 'p');
+		hud_putc(37, 0, 's');
+	}
+}
+
+
+//**************************************************************************************
+//
 // Palette
 //
 
@@ -170,6 +235,8 @@ void I_FinishUpdate(void)
 		I_UploadNewPalette(newpal);
 		newpal = NO_PALETTE_CHANGE;
 	}
+
+	I_DrawDebugCounters();   // 右上に VBLANK/フレーム/FPS を重畳
 
 	VDP_setTileMapDataRect(BG_A, _s_screen, 0, 0,
 	                       VIEWWINDOWWIDTH, VIEWWINDOWHEIGHT,
