@@ -13,8 +13,6 @@
   </tr>
 </table>
 
-デモ動画: https://www.youtube.com/watch?v=op3LCBNLuqo
-
 [FrenkelS/Doom64KB](https://github.com/FrenkelS/Doom64KB) を **Sega Genesis / Mega Drive** へ移植したもの。
 SGDK + marsdev(m68k-elf) で Linux ネイティブビルドする。
 
@@ -23,6 +21,20 @@ SGDK + marsdev(m68k-elf) で Linux ネイティブビルドする。
 Doom64KB は「RAM 64KB・ROM 大容量」向けの Doom 移植で、Genesis(68000, メイン RAM 64KB) は
 ターゲットとして好相性。Neo Geo 版(`i_neogeo.c` / `i_neogev.c`)も同じ 68000・big-endian の
 ため、プラットフォーム非依存の Doom コードは無修正で動作し、置き換えるのは I/O 層 2 ファイルだけ。
+
+## デモ動画
+
+https://www.youtube.com/watch?v=op3LCBNLuqo
+
+DOOM running on the Sega Mega Drive / Genesis, ported from Doom64KB.
+
+Fork of FrenkelS/Doom64KB:
+https://github.com/FrenkelS/Doom64KB
+
+Music: the in-game MIDI is from
+https://www.vgmusic.com/file/f4135d253bec49497cb3323be35a0cce.html
+converted to VGM (Mega Drive YM2612 FM) with akiyan/midi2vgm:
+https://github.com/akiyan/midi2vgm
 
 ## 状態
 
