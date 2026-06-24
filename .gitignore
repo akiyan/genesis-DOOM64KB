@@ -12,10 +12,13 @@
 /src/gen_pal.h
 /src/gen_sfx.h
 
-# SFX 音源 WAD（リポジトリには含めない。各自 scripts/ に配置。無ければ SFX 無効でビルド）
+# SFX 音源 WAD（リポジトリには含めない。各自 scripts/ に配置）
 /scripts/doom1.wad
 
-# rescomp 生成物（res/*.res から再生成。ソースは *.res と *.vgm のみ追跡）
+# BGM VGM（リポジトリには含めない。各自 res/ に配置）
+/res/*.vgm
+
+# rescomp 生成物（res/*.res と各自配置した *.vgm から再生成）
 /res/*.h
 /res/*.rs
 /res/*.d

@@ -35,12 +35,6 @@ Doom64KB は「RAM 64KB・ROM 大容量」向けの Doom 移植で、Genesis(680
 
 対応マップは Doom 1 E1M1 と E1M8 のみ（Doom64KB の仕様）。
 
-## 音源
-
-`res/e1m1_hangar.vgm` の元になった MIDI ファイルは
-[E1M1.mid](https://bitmidi.com/e1m1-mid)。MIDI から VGM への変換には
-[akiyan/midi2vgm](https://github.com/akiyan/midi2vgm) を使用した。
-
 ## 描画方式
 
 VDP プレーン A を **38x28 のチャンキー・フレームバッファ**として使う。各セル = 8x8 の
@@ -60,9 +54,18 @@ VDP プレーン A を **38x28 のチャンキー・フレームバッファ**�
 - `m68k-elf-gcc`(marsdev) を `$HOME/toolchains/mars/m68k-elf/bin` に（`MARSDEV` で上書き可）
 - `default-jre-headless`（rescomp 用）
 - `vendor/sgdk` に SGDK v2.11 をネイティブビルドしたもの（`bin/` のホストツールと `lib/libmd.a`）
+- BGM 用 VGM: `res/e1m1.vgm`
+- 無音 VGM: `res/silent.vgm`
+- SFX 抽出用 WAD: `scripts/doom1.wad`
+
+VGM ファイルはリポジトリには含めない。各自で上記パスへ配置してからビルドする。
+`res/music.res` の `XGM` リソースとして SGDK rescomp に渡され、ビルド時に XGM へ変換される。
+`doom1.wad` もリポジトリには含めない。ビルド時に DS* lump を抜き出して `src/gen_sfx.h` を生成する。
+別の場所にあるファイルを使う場合は、ビルド時にパスを指定できる。
 
 ```sh
 ./build.sh                 # out/rom.bin を生成
+BGM_VGM=~/music/e1m1.vgm SILENT_VGM=~/music/silent.vgm DOOM1_WAD=~/wads/doom1.wad ./build.sh
 TIMEDEMO=1 ./build.sh      # 起動直後に DEMO3 を再生するベンチ版（3D描画確認用）
 ```
 
@@ -71,9 +74,8 @@ TIMEDEMO=1 ./build.sh      # 起動直後に DEMO3 を再生するベンチ版�
 1. `scripts/doom64.wad`（同梱）を 68000 向けに 4 バイト整列で再パックし `src/doom64ng.h` を再生成
    （非整列 lump を WAD へ直接 far 参照すると 68000 で address error になるため）
 2. `scripts/genpal.py` で PLAYPAL → Genesis 64 色パレット/LUT(`src/gen_pal.h`)を生成
-
-SFX 抽出元の `doom1.wad` は
-[WAD Archive の DOOM1.WAD](https://www.wad-archive.com/wad/23a3a8bfafcfdc7c481f282cf2a3d03e5f386d43) を使用した。
+3. `scripts/gen_sfx.py` で `doom1.wad` の DS* lump → XGM PCM 用 SFX データ(`src/gen_sfx.h`)を生成
+4. SGDK rescomp で `res/music.res` の VGM → XGM データを生成
 
 ## 動作確認（ヘッドレス）
 

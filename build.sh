@@ -28,6 +28,38 @@ if [ ! -f "${GDK}/lib/libmd.a" ]; then
   exit 1
 fi
 
+prepare_vgm() {
+  local src="$1"
+  local dst="$2"
+  if [ ! -f "${src}" ]; then
+    echo "error: ${src} がありません。README の手順に従って VGM を配置するか、VGM パスを指定してください。" >&2
+    exit 1
+  fi
+  if [ "$(realpath -m "${src}")" != "$(realpath -m "${dst}")" ]; then
+    cp "${src}" "${dst}"
+  fi
+}
+
+prepare_vgm "${BGM_VGM:-res/e1m1.vgm}" "res/e1m1.vgm"
+prepare_vgm "${SILENT_VGM:-res/silent.vgm}" "res/silent.vgm"
+# VGM は外部配置なので、BGM 差し替えやファイル名変更を確実に反映するため毎回 XGM へ再変換する。
+rm -f out/res/music.o out/res/music.d res/music.rs res/music.d
+
+prepare_asset() {
+  local src="$1"
+  local dst="$2"
+  local label="$3"
+  if [ ! -f "${src}" ]; then
+    echo "error: ${src} がありません。README の手順に従って ${label} を配置するか、パスを指定してください。" >&2
+    exit 1
+  fi
+  if [ "$(realpath -m "${src}")" != "$(realpath -m "${dst}")" ]; then
+    cp "${src}" "${dst}"
+  fi
+}
+
+prepare_asset "${DOOM1_WAD:-scripts/doom1.wad}" "scripts/doom1.wad" "doom1.wad"
+
 # doom64.wad を doom64ng.h から抽出（初回のみ）
 if [ ! -f scripts/doom64.wad ]; then
   python3 scripts/wad_from_header.py

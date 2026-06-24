@@ -20,10 +20,6 @@ import struct, os, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 WAD  = os.path.join(ROOT, "scripts", "doom1.wad")
-if not os.path.exists(WAD):
-    alt = "/home/akiyan/genesis-doom/wad/doom1.wad"
-    if os.path.exists(alt):
-        WAD = alt
 OUT  = os.path.join(ROOT, "src", "gen_sfx.h")
 
 XGM_RATE    = 14000   # classic XGM ドライバの固定 PCM レート
@@ -91,25 +87,12 @@ def fresh():
             return False
     return True
 
-def write_stub():
-    # doom1.wad 不在環境(リポジトリに WAD を含めない方針)でもビルドが通るよう、
-    # SFX を無効化したスタブを出力する。DMX_Init/DMX_Play は GENSFX_COUNT=0 で no-op になる。
-    with open(OUT, "w") as f:
-        f.write("// 自動生成 (scripts/gen_sfx.py) — doom1.wad 不在のため SFX 無効スタブ\n")
-        f.write("#ifndef __GEN_SFX_H__\n#define __GEN_SFX_H__\n#include <stdint.h>\n\n")
-        f.write("#define GENSFX_PCM_ID_BASE %d\n#define GENSFX_COUNT 0\n\n" % PCM_ID_BASE)
-        f.write("typedef struct { const uint8_t *data; uint32_t len; uint8_t prio; } gensfx_t;\n")
-        f.write("static const gensfx_t gensfx[1] = { { 0, 0, 0 } };\n\n#endif\n")
-    print("warning: doom1.wad が無いため SFX 無効スタブを生成。"
-          "SFX を有効化するには scripts/doom1.wad を配置して再ビルド。")
-
 def main():
     if "--force" not in sys.argv and fresh():
         print("gen_sfx.h は最新。スキップ")
         return
     if not os.path.exists(WAD):
-        write_stub()
-        return
+        sys.exit("error: scripts/doom1.wad がありません。README の手順に従って配置してください。")
     lumps = read_lumps()
 
     arrays = []
