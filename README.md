@@ -66,6 +66,7 @@ VGM ファイルはリポジトリには含めない。各自で上記パスへ�
 ```sh
 ./build.sh                 # out/rom.bin を生成
 BGM_VGM=~/music/e1m1.vgm SILENT_VGM=~/music/silent.vgm DOOM1_WAD=~/wads/doom1.wad ./build.sh
+TITLE_DEMO_SECONDS=10 ./build.sh
 TIMEDEMO=1 ./build.sh      # 起動直後に DEMO3 を再生するベンチ版（3D描画確認用）
 ```
 

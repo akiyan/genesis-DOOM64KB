@@ -379,7 +379,7 @@ static void D_DrawTitle1(const char *name)
 	UNUSED(name);
 
 	S_StartMusic(mus_intro);
-	pagetic = (TICRATE*10);
+	pagetic = (TICRATE * TITLE_DEMO_SECONDS);
 }
 
 

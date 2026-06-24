@@ -83,6 +83,10 @@
 // State updates, number of tics / second.
 #define TICRATE          35
 
+#ifndef TITLE_DEMO_SECONDS
+#define TITLE_DEMO_SECONDS 30
+#endif
+
 
 int16_t M_CheckParm(char *check);
 
