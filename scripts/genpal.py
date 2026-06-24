@@ -82,35 +82,86 @@ def median_cut(items, depth):
         boxes = nb
     return boxes
 
+def dist2(a, b):
+    return (a[0]-b[0])**2 + (a[1]-b[1])**2 + (a[2]-b[2])**2
+
+def gen_to_rgb(w):
+    # gen_color() で作った Genesis 9bit 語を表示時の RGB888 へ戻す（各3bit -> 8bit）
+    r = (w >> 1) & 7; g = (w >> 5) & 7; b = (w >> 9) & 7
+    e = lambda v: (v << 5) | (v << 2) | (v >> 1)
+    return (e(r), e(g), e(b))
+
 def main():
     pp = load_playpal()
-    base_rgb = decode_subpal(pp, 0)
+    cols = decode_subpal(pp, 0)        # Doom idx -> RGB888（量子化の基準）
 
-    # 256 色を NVIEW(56) クラスタへ。2^6=64 分割の先頭 56 box を使う。
-    items = [(i, base_rgb[i]) for i in range(NCOL)]
-    boxes = [b for b in median_cut(items, 6) if b]      # 空 box を除去
-    # box 数を NVIEW へ調整（多ければ小さい box を併合）
-    boxes.sort(key=len, reverse=True)
+    def centroid(idxs):
+        n = len(idxs)
+        return (sum(cols[i][0] for i in idxs)/n,
+                sum(cols[i][1] for i in idxs)/n,
+                sum(cols[i][2] for i in idxs)/n)
+
+    # --- 初期クラスタ: median cut。箱数調整は「最近傍の箱へ合流」させ、
+    #     旧コードのように1箱へ雪だるま式に集約しないようにする。
+    items = [(i, cols[i]) for i in range(NCOL)]
+    boxes = [[c[0] for c in b] for b in median_cut(items, 6) if b]   # 箱 = Doom idx のリスト
     while len(boxes) > NVIEW:
-        small = boxes.pop()
-        boxes[-1] = boxes[-1] + small
+        boxes.sort(key=len)
+        small = boxes.pop(0)
+        sc = centroid(small)
+        j = min(range(len(boxes)), key=lambda k: dist2(sc, centroid(boxes[k])))
+        boxes[j] = boxes[j] + small
     while len(boxes) < NVIEW:
-        big = max(boxes, key=len)
-        boxes.remove(big)
-        big = sorted(big, key=lambda c: c[1][0])
-        m = len(big)//2
+        big = max(boxes, key=len); boxes.remove(big)
+        rng = [max(cols[i][ch] for i in big) - min(cols[i][ch] for i in big) for ch in range(3)]
+        ax = rng.index(max(rng))
+        big = sorted(big, key=lambda i: cols[i][ax]); m = len(big)//2
         boxes.append(big[:m]); boxes.append(big[m:])
 
+    centroids = [centroid(b) for b in boxes]
+
+    # --- Lloyd 反復 (k-means) で代表色を最適化（決定論的）---
+    for _ in range(30):
+        groups = [[] for _ in range(NVIEW)]
+        for i in range(NCOL):
+            j = min(range(NVIEW), key=lambda k: dist2(cols[i], centroids[k]))
+            groups[j].append(i)
+        for k in range(NVIEW):              # 空クラスタ救済: 最も誤差の大きい点を奪う
+            if groups[k]:
+                continue
+            assign = [min(range(NVIEW), key=lambda kk: dist2(cols[i], centroids[kk])) for i in range(NCOL)]
+            worst = max(range(NCOL), key=lambda i: dist2(cols[i], centroids[assign[i]]))
+            groups[assign[worst]].remove(worst); groups[k] = [worst]
+        new = [centroid(g) for g in groups]
+        if new == centroids:
+            break
+        centroids = new
+
+    # --- 各クラスタの代表 Doom index を選ぶ。表示色(Genesis 9bit)が重複しないよう調整し、
+    #     実効色数を NVIEW に近づける。大きいクラスタから distinct 色を確保。---
+    groups = [[] for _ in range(NVIEW)]
+    for i in range(NCOL):
+        j = min(range(NVIEW), key=lambda k: dist2(cols[i], centroids[k]))
+        groups[j].append(i)
+    used_gen = set()
     repr_idx = [0]*NVIEW
-    slot_of  = [0]*NCOL
-    for s, box in enumerate(boxes):
-        cr = sum(c[1][0] for c in box)/len(box)
-        cg = sum(c[1][1] for c in box)/len(box)
-        cb = sum(c[1][2] for c in box)/len(box)
-        best = min(box, key=lambda c: (c[1][0]-cr)**2 + (c[1][1]-cg)**2 + (c[1][2]-cb)**2)
-        repr_idx[s] = best[0]
-        for c in box:
-            slot_of[c[0]] = s
+    for k in sorted(range(NVIEW), key=lambda k: -len(groups[k])):
+        cen = centroids[k]
+        g = groups[k] if groups[k] else [min(range(NCOL), key=lambda i: dist2(cols[i], cen))]
+        cand = sorted(g, key=lambda i: dist2(cols[i], cen))           # まずクラスタ内
+        chosen = next((i for i in cand if gen_color(cols[i]) not in used_gen), None)
+        if chosen is None:                                           # 全色から未使用 Genesis 色を探す
+            allc = sorted(range(NCOL), key=lambda i: dist2(cols[i], cen))
+            chosen = next((i for i in allc if gen_color(cols[i]) not in used_gen), cand[0])
+        repr_idx[k] = chosen
+        used_gen.add(gen_color(cols[chosen]))
+
+    # --- 各 Doom 色を「最も近い代表“表示色”」へ割り当て直す（箱の所属ではなく）。
+    #     これでグレーが緑代表へ混入するような誤割当てが消える。---
+    repr_disp = [gen_to_rgb(gen_color(cols[repr_idx[k]])) for k in range(NVIEW)]
+    slot_of = [min(range(NVIEW), key=lambda k: dist2(cols[i], repr_disp[k])) for i in range(NCOL)]
+
+    print("実効色数(distinct Genesis):", len(used_gen), "/", NVIEW)
 
     def cram_pos(slot):
         # ビュー slot -> CRAM 位置（pal*16 + index）。index は 1..14。
