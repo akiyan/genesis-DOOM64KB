@@ -59,6 +59,9 @@ TIMEDEMO=1 ./build.sh      # 起動直後に DEMO3 を再生するベンチ版�
    （非整列 lump を WAD へ直接 far 参照すると 68000 で address error になるため）
 2. `scripts/genpal.py` で PLAYPAL → Genesis 64 色パレット/LUT(`src/gen_pal.h`)を生成
 
+`scripts/doom64.wad` の元になった `doom1.wad` は
+[WAD Archive の DOOM1.WAD](https://www.wad-archive.com/wad/23a3a8bfafcfdc7c481f282cf2a3d03e5f386d43) を使用した。
+
 ## 動作確認（ヘッドレス）
 
 ```sh
