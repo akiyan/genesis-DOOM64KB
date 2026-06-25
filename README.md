@@ -33,6 +33,14 @@ https://www.vgmusic.com/file/f4135d253bec49497cb3323be35a0cce.html
 converted to VGM (Mega Drive YM2612 FM) with akiyan/midi2vgm:
 https://github.com/akiyan/midi2vgm
 
+## ROM Image Downloads
+
+- Releases: https://github.com/akiyan/genesis-DOOM64KB/releases
+
+## 関連記事
+
+- https://www.akiyan.com/blog/archives/2026/06/sega-genesis-doom-port.html
+
 ## 状態
 
 - ✅ ブート / WAD 読み込み（886KB の WAD を ROM に埋め込み）
